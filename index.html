@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tahun Baru 2025</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: rgb(0, 0, 0);
+            touch-action: manipulation;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        canvas {
+            display: block;
+            touch-action: none;
+        }
+
+        @media (max-width: 768px) {
+            canvas {
+                height: 100vh;
+                width: 100vw;
+            }
+        }
+
+        .notification {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            z-index: 1000;
+            font-family: Arial, sans-serif;
+        }
+
+        .notification button {
+            margin-top: 10px;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            position: relative;
+            overflow: hidden;
+            background: #000;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .notification button::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            z-index: -1;
+            background: linear-gradient(90deg,
+                    #ff0000, #ff7300, #fffb00, #48ff00,
+                    #00ffd5, #002bff, #7a00ff, #ff00c8, #ff0000);
+            background-size: 400%;
+            border-radius: 10px;
+            animation: glowing 20s linear infinite;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        .notification button:hover::before {
+            opacity: 1;
+        }
+
+        .notification button::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            z-index: -1;
+            background: linear-gradient(90deg,
+                    #ff0000, #ff7300, #fffb00, #48ff00,
+                    #00ffd5, #002bff, #7a00ff, #ff00c8, #ff0000);
+            background-size: 400%;
+            border-radius: 8px;
+            animation: glowing 20s linear infinite;
+        }
+
+        @keyframes glowing {
+            0% {
+                background-position: 0 0;
+            }
+
+            50% {
+                background-position: 400% 0;
+            }
+
+            100% {
+                background-position: 0 0;
+            }
+        }
+
+        .notification button:hover {
+            transform: scale(1.05);
+            color: #fff;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.7);
+        }
+
+        .notification button:active {
+            transform: scale(0.95);
+        }
+
+        @keyframes rainbow {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            100% {
+                background-position: 100% 50%;
+            }
+        }
+
+        /* Add new styles for sound toggle button */
+        .sound-toggle {
+            position: fixed;
+            top: 740px;
+            right: 20px;
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .sound-toggle:hover {
+            background: rgba(0, 0, 0, 0.8);
+            transform: scale(1.1);
+        }
+
+        .sound-toggle i {
+            color: white;
+            font-size: 24px;
+        }
+
+        @media (max-width: 768px) {
+            .sound-toggle {
+                width: 40px;
+                height: 40px;
+                top: 610px;
+                right: 10px;
+            }
+
+            .sound-toggle i {
+                font-size: 20px;
+            }
+        }
+    </style>
+    <!-- Add Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+    <div id="notification" class="notification">
+        <p>Tekan layar untuk berinteraksi dengan kembang api</p>
+        <p>by ahnaffa_raha</p>
+        <button onclick="startFireworks()">OK</button>
+    </div>
+
+    <button id="soundToggle" class="sound-toggle" onclick="toggleSound()">
+        <i class="fas fa-volume-up"></i>
+    </button>
+
+    <canvas id="fireworksCanvas"></canvas>
+
+    <!-- Add audio elements -->
+    <audio id="launchSound" preload="auto">
+        <source src="./assets/1.1.mp3" type="audio/mp3">
+    </audio>
+    <audio id="explosionSound" preload="auto">
+        <source src="./assets/2.1.mp3" type="audio/mp3">
+    </audio>
+    <audio id="sparkleSound" preload="auto">
+        <source src="./assets/3.2.mp3" type="audio/mp3">
+    </audio>
+
+    <script>
+        let animationStarted = false;
+
+        function startFireworks() {
+            document.getElementById('notification').style.display = 'none';
+            if (!animationStarted) {
+                animationStarted = true;
+                sequenceTime = Date.now();
+                lastTextLaunch = Date.now();
+                animate();
+            }
+        }
+
+        // Add sound control variables at the top of your script
+        let isSoundEnabled = true;
+        const soundToggleBtn = document.getElementById('soundToggle');
+        const soundIcon = soundToggleBtn.querySelector('i');
+
+        // Add sound toggle function
+        function toggleSound() {
+            isSoundEnabled = !isSoundEnabled;
+
+            // Update icon
+            soundIcon.className = isSoundEnabled ? 'fas fa-volume-up' : 'fas fa-volume-mute';
+
+            // Add animation effect
+            soundToggleBtn.style.transform = 'scale(1.2)';
+            setTimeout(() => {
+                soundToggleBtn.style.transform = 'scale(1)';
+            }, 200);
+        }
+
+        // Add sound control functions
+        const sounds = {
+            launch: document.getElementById('launchSound'),
+            explosion: document.getElementById('explosionSound'),
+            sparkle: document.getElementById('sparkleSound')
+        };
+
+        // Modify the playSound function to check if sound is enabled
+        function playSound(sound, volume = 1.0) {
+            if (!isSoundEnabled) return;
+
+            const clone = sound.cloneNode(true);
+            clone.volume = volume;
+            clone.play().catch(e => console.log("Sound play failed:", e));
+            // Clean up cloned audio element after it finishes playing
+            clone.onended = () => clone.remove();
+        }
+
+        class Firework {
+            constructor(x, y, targetX, targetY, pattern = 'random') {
+                this.x = x;
+                this.y = y;
+                this.targetX = targetX;
+                this.targetY = targetY;
+                this.pattern = pattern;
+                this.speed = 2;
+                this.angle = Math.atan2(targetY - y, targetX - x);
+                this.velocity = {
+                    x: Math.cos(this.angle) * this.speed,
+                    y: Math.sin(this.angle) * this.speed
+                };
+                this.trail = [];
+                this.maxTrailLength = 5;
+                this.hue = Math.random() * 360;
+                this.fadeTrail = true;
+                this.sparkTrail = [];
+                this.maxSparkTrail = 3;
+                this.colorMode = Math.random() < 0.3 ? 'rgb' : 'normal';
+                this.colorShift = Math.random() < 0.5;
+                this.baseHue = Math.random() * 360;
+                this.hueSpeed = 1 + Math.random() * 2;
+
+                // Play launch sound
+                playSound(sounds.launch, 0.3);
+            }
+
+            update() {
+                this.x += this.velocity.x;
+                this.y += this.velocity.y;
+
+                this.trail.push({ x: this.x, y: this.y });
+                if (this.trail.length > this.maxTrailLength) {
+                    this.trail.shift();
+                }
+
+                const distanceToTarget = Math.hypot(this.targetX - this.x, this.targetY - this.y);
+                if (distanceToTarget < 5) {
+                    // Play explosion sound when firework reaches target
+                    playSound(sounds.explosion, 0.4);
+                    return this.explode();
+                }
+
+                // Add sparks during flight
+                if (Math.random() < 0.3) {
+                    this.sparkTrail.push({
+                        x: this.x,
+                        y: this.y,
+                        alpha: 1
+                    });
+                }
+
+                this.sparkTrail = this.sparkTrail.filter(spark => {
+                    spark.alpha -= 0.1;
+                    return spark.alpha > 0;
+                });
+
+                return false;
+            }
+
+            explode() {
+                // Play sparkle sound after explosion
+                playSound(sounds.sparkle, 0.2);
+
+                switch (this.pattern) {
+                    case 'willow':
+                        return createWillowEffect(this.x, this.y);
+                    case 'palm':
+                        return createPalmEffect(this.x, this.y);
+                    case 'brocade':
+                        return createBrocadeEffect(this.x, this.y);
+                    case 'circle':
+                        return createCircleEffect(this.x, this.y);
+                    case 'heart':
+                        return createHeartEffect(this.x, this.y);
+                    case 'star':
+                        return createStarEffect(this.x, this.y);
+                    case 'spiral':
+                        return createSpiralEffect(this.x, this.y);
+                    case 'crown':
+                        return createCrownEffect(this.x, this.y);
+                    case 'multiRing':
+                        return createMultiRingEffect(this.x, this.y);
+                    default:
+                        return createRandomBurst(this.x, this.y);
+                }
+            }
+
+            draw(ctx) {
+                const currentTime = Date.now() * 0.001;
+
+                // Dynamic color calculation
+                let color;
+                if (this.colorMode === 'rgb') {
+                    const r = Math.sin(currentTime * 1.1) * 127 + 128;
+                    const g = Math.sin(currentTime * 1.2) * 127 + 128;
+                    const b = Math.sin(currentTime * 1.3) * 127 + 128;
+                    color = `rgba(${r},${g},${b}`;
+                } else {
+                    const hue = this.colorShift ?
+                        (this.baseHue + currentTime * this.hueSpeed * 50) % 360 :
+                        this.baseHue;
+                    color = `hsla(${hue}, 100%`;
+                }
+
+                // Draw spark trail with dynamic color
+                this.sparkTrail.forEach(spark => {
+                    ctx.fillStyle = `${color}, 70%, ${spark.alpha})`;
+                    ctx.beginPath();
+                    ctx.arc(spark.x, spark.y, 1, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+
+                ctx.strokeStyle = `${color}, 50%, 1)`;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                this.trail.forEach((pos, i) => {
+                    if (i === 0) ctx.moveTo(pos.x, pos.y);
+                    else ctx.lineTo(pos.x, pos.y);
+                });
+                ctx.stroke();
+            }
+        }
+
+        class Particle {
+            constructor(x, y, angle, speed, hue) {
+                this.x = x;
+                this.y = y;
+                this.angle = angle;
+                this.speed = speed;
+                this.hue = hue;
+                this.alpha = 1;
+                this.decay = 0.015;
+                this.gravity = 0.2;
+                this.trail = [];
+                this.maxTrailLength = 5;
+            }
+
+            update() {
+                this.speed *= 0.97;
+                this.x += Math.cos(this.angle) * this.speed;
+                this.y += Math.sin(this.angle) * this.speed + this.gravity;
+                this.alpha -= this.decay;
+
+                this.trail.push({ x: this.x, y: this.y });
+                if (this.trail.length > this.maxTrailLength) {
+                    this.trail.shift();
+                }
+
+                return this.alpha > 0;
+            }
+
+            draw(ctx) {
+                ctx.strokeStyle = `hsla(${this.hue}, 100%, 50%, ${this.alpha})`;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                this.trail.forEach((pos, i) => {
+                    if (i === 0) ctx.moveTo(pos.x, pos.y);
+                    else ctx.lineTo(pos.x, pos.y);
+                });
+                ctx.stroke();
+            }
+        }
+
+        // Effect Patterns
+        function createCircleEffect(x, y) {
+            const particles = [];
+            const count = 60;
+            const hue = Math.random() * 360;
+            for (let i = 0; i < count; i++) {
+                const angle = (i / count) * Math.PI * 2;
+                particles.push(new Particle(x, y, angle, 8 + Math.random() * 3, hue));
+            }
+            return particles;
+        }
+
+        function createHeartEffect(x, y) {
+            const particles = [];
+            const count = 40;
+            const hue = Math.random() * 360;
+            for (let i = 0; i < count; i++) {
+                const angle = (i / count) * Math.PI * 2;
+                const heartShape = t => ({
+                    x: 16 * Math.pow(Math.sin(t), 3),
+                    y: -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t))
+                });
+                const pos = heartShape(angle);
+                const particleAngle = Math.atan2(pos.y, pos.x);
+                particles.push(new Particle(x, y, particleAngle, 8, hue));
+            }
+            return particles;
+        }
+
+        function createStarEffect(x, y) {
+            const particles = [];
+            const points = 5;
+            const hue = Math.random() * 360;
+            for (let i = 0; i < points * 2; i++) {
+                const angle = (i / points) * Math.PI;
+                const radius = i % 2 === 0 ? 8 : 15;
+                particles.push(new Particle(x, y, angle, radius, hue));
+            }
+            return particles;
+        }
+
+        function createSpiralEffect(x, y) {
+            const particles = [];
+            const turns = 3;
+            const particlesPerTurn = 20;
+            const hue = Math.random() * 360;
+            for (let i = 0; i < turns * particlesPerTurn; i++) {
+                const angle = (i / particlesPerTurn) * Math.PI * 2;
+                const radius = (i / (turns * particlesPerTurn)) * 15;
+                particles.push(new Particle(x, y, angle, radius, hue));
+            }
+            return particles;
+        }
+
+        function createCrownEffect(x, y) {
+            const particles = [];
+            const points = 8;
+            const hue = Math.random() * 360;
+            for (let i = 0; i < points; i++) {
+                const angle = (i / points) * Math.PI * 2;
+                particles.push(new Particle(x, y, angle, 12, hue));
+                particles.push(new Particle(x, y, angle + 0.2, 8, hue));
+                particles.push(new Particle(x, y, angle - 0.2, 8, hue));
+            }
+            return particles;
+        }
+
+        function createMultiRingEffect(x, y) {
+            const particles = [];
+            const rings = 3;
+            const hue = Math.random() * 360;
+            for (let ring = 0; ring < rings; ring++) {
+                const count = 20 + (ring * 10);
+                const speed = 5 + (ring * 3);
+                for (let i = 0; i < count; i++) {
+                    const angle = (i / count) * Math.PI * 2;
+                    particles.push(new Particle(x, y, angle, speed, hue + (ring * 30)));
+                }
+            }
+            return particles;
+        }
+
+        function createRandomBurst(x, y) {
+            const particles = [];
+            const count = 30;
+            const hue = Math.random() * 360;
+            for (let i = 0; i < count; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                particles.push(new Particle(x, y, angle, 8 + Math.random() * 3, hue));
+            }
+            return particles;
+        }
+
+        function createWillowEffect(x, y) {
+            const particles = [];
+            const count = 150;
+            const hue = Math.random() * 360;
+            for (let i = 0; i < count; i++) {
+                const angle = (i / count) * Math.PI * 2;
+                const particle = new Particle(x, y, angle, 8 + Math.random() * 3, hue);
+                particle.gravity = 0.1;
+                particle.decay = 0.006;
+                particles.push(particle);
+            }
+            return particles;
+        }
+
+        function createPalmEffect(x, y) {
+            const particles = [];
+            const branches = 12;
+            const particlesPerBranch = 15;
+            const hue = Math.random() * 360;
+
+            for (let branch = 0; branch < branches; branch++) {
+                const baseAngle = (branch / branches) * Math.PI * 2;
+                for (let i = 0; i < particlesPerBranch; i++) {
+                    const angle = baseAngle + (Math.random() * 0.3 - 0.15);
+                    const particle = new Particle(x, y, angle, 10 + Math.random() * 5, hue);
+                    particle.gravity = 0.15;
+                    particles.push(particle);
+                }
+            }
+            return particles;
+        }
+
+        function createBrocadeEffect(x, y) {
+            const particles = [];
+            const count = 120;
+            const hue = Math.random() * 360;
+
+            for (let i = 0; i < count; i++) {
+                const angle = (i / count) * Math.PI * 2;
+                const speed = 12 + Math.random() * 2;
+                const particle = new Particle(x, y, angle, speed, hue);
+                particle.gravity = 0.15;
+                particle.decay = 0.01;
+                particles.push(particle);
+
+                // Add secondary particles
+                if (Math.random() < 0.3) {
+                    const smallParticle = new Particle(x, y, angle + (Math.random() * 0.5 - 0.25), speed * 0.7, hue);
+                    smallParticle.gravity = 0.12;
+                    particles.push(smallParticle);
+                }
+            }
+            return particles;
+        }
+
+        // Add new patterns array with all available effects
+        const allPatterns = [
+            'willow', 'palm', 'brocade', 'circle', 'heart',
+            'star', 'spiral', 'crown', 'multiRing'
+        ];
+
+        // Animation Setup
+        const fireworks = [];
+        const particles = [];
+        const canvas = document.getElementById('fireworksCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let sequenceTime = 0;
+        let sequenceInterval = 2000; // 2 seconds between major sequence events
+        // Modify sequence to use more random patterns
+        const sequence = [
+            {
+                type: 'medium',
+                patterns: () => getRandomPatterns(3), // Dynamic pattern selection
+                count: 2,
+                interval: () => 2000 + (Math.random() * 800 - 400),
+                simultaneous: 2,
+                positionStyle: 'staggeredRandom',
+                heightVariation: 0.2,
+                launchDelay: 'random' // New property for launch timing
+            },
+            {
+                type: 'large',
+                patterns: () => getRandomPatterns(4),
+                count: 3,
+                interval: () => 1800 + Math.sin(Date.now() * 0.001) * 400,
+                simultaneous: 2,
+                positionStyle: 'alternatingPaths',
+                heightVariation: 0.25,
+                launchDelay: 'cascade'
+            },
+            {
+                type: 'mixed',
+                patterns: () => getRandomPatterns(5),
+                count: 2,
+                interval: () => 1500 + Math.cos(Date.now() * 0.0015) * 300,
+                simultaneous: 3,
+                positionStyle: 'fluidMotion',
+                heightVariation: 0.3,
+                launchDelay: 'wave'
+            }
+        ];
+
+        // Enhanced position styles for more natural launches
+        const positionStyles = {
+            random: (i, total, width) => Math.random() * width,
+
+            zigzag: (i, total, width) => {
+                const segment = width / 4;
+                const offset = Math.sin(i * Math.PI) * segment;
+                return (width / 2) + offset;
+            },
+
+            expanding: (i, total, width) => {
+                const expansion = (i / total) * (width / 2);
+                return (width / 2) + (Math.random() > 0.5 ? expansion : -expansion);
+            },
+
+            scatter: (i, total, width) => {
+                const segment = width / 6;
+                return segment + (Math.random() * segment * 4);
+            },
+
+            wave: (i, total, width) => {
+                const frequency = 2;
+                const amplitude = width / 4;
+                return (width / 2) + Math.sin(i * frequency) * amplitude;
+            },
+
+            swirl: (i, total, width, time) => {
+                const radius = width * 0.3;
+                const angle = (time * 0.001 + i / total) * Math.PI * 2;
+                return width / 2 + Math.cos(angle) * radius;
+            },
+
+            chaotic: (i, total, width) => {
+                return width * (0.2 + 0.6 * Math.pow(Math.random(), 2));
+            },
+
+            convergent: (i, total, width, time) => {
+                const center = width / 2;
+                const offset = width * 0.3 * Math.exp(-time * 0.001);
+                return center + (Math.random() > 0.5 ? offset : -offset);
+            },
+
+            divergent: (i, total, width, time) => {
+                const center = width / 2;
+                const offset = width * 0.3 * (1 - Math.exp(-time * 0.001));
+                return center + (i % 2 ? offset : -offset) * Math.random();
+            },
+
+            spiral: (i, total, width, time) => {
+                const angle = time * 0.001 + (i / total) * Math.PI * 4;
+                const radius = width * 0.002 * time % (width * 0.3);
+                return width / 2 + Math.cos(angle) * radius;
+            },
+
+            naturalArc: (i, total, width, time) => {
+                const basePos = width * (0.3 + Math.random() * 0.4);
+                const wobble = Math.sin(time * 0.002) * (width * 0.05);
+                return basePos + wobble;
+            },
+
+            crossOver: (i, total, width, time) => {
+                const center = width / 2;
+                const spread = width * 0.3;
+                const phase = (time * 0.001 + i) % (Math.PI * 2);
+                return center + Math.sin(phase) * spread;
+            },
+
+            symmetricChaos: (i, total, width, time) => {
+                const center = width / 2;
+                const noise = Math.sin(time * 0.001 * (i + 1)) * Math.cos(time * 0.002);
+                return center + (noise * width * 0.25);
+            },
+
+            staggeredRandom: (i, total, width, time) => {
+                const offset = Math.sin(time * 0.0015 + i * 1.5) * (width * 0.15);
+                return width * (0.2 + Math.random() * 0.6) + offset;
+            },
+
+            alternatingPaths: (i, total, width, time) => {
+                const basePos = width * (0.3 + Math.random() * 0.4);
+                const pathVariation = Math.sin(time * 0.001 + i * Math.PI) * (width * 0.2);
+                return basePos + pathVariation * (i % 2 ? 1 : -1);
+            },
+
+            fluidMotion: (i, total, width, time) => {
+                const phase1 = Math.sin(time * 0.001);
+                const phase2 = Math.cos(time * 0.002 + i);
+                const phase3 = Math.sin(time * 0.0005 + i * 0.5);
+                return width * (0.5 + (phase1 * phase2 * phase3) * 0.3);
+            }
+        };
+
+        let currentSequenceIndex = 0;
+        let sequenceFireworkCount = 0;
+
+        function calculateLaunchDelay(phase, index, currentTime) {
+            switch (phase.launchDelay) {
+                case 'random':
+                    return Math.random() * 800;
+                case 'cascade':
+                    return index * 300 * (1 + Math.sin(currentTime * 0.001) * 0.3);
+                case 'wave':
+                    return Math.sin(currentTime * 0.001 + index * Math.PI / 2) * 400 + 400;
+                default:
+                    return index * 200;
+            }
+        }
+
+        // Function to get random patterns
+        function getRandomPatterns(count) {
+            const shuffled = [...allPatterns].sort(() => Math.random() - 0.5);
+            return shuffled.slice(0, count);
+        }
+
+        function launchSequenceFirework() {
+            const currentPhase = sequence[currentSequenceIndex];
+            const currentTime = Date.now() - sequenceTime;
+
+            const baseInterval = typeof currentPhase.interval === 'function'
+                ? currentPhase.interval()
+                : currentPhase.interval;
+
+            // Get patterns for this phase
+            const availablePatterns = typeof currentPhase.patterns === 'function'
+                ? currentPhase.patterns()
+                : currentPhase.patterns;
+
+            // Launch fireworks with varied timing
+            for (let i = 0; i < currentPhase.simultaneous; i++) {
+                const launchDelay = calculateLaunchDelay(currentPhase, i, currentTime);
+
+                setTimeout(() => {
+                    // Always select a random pattern from available patterns
+                    const pattern = availablePatterns[Math.floor(Math.random() * availablePatterns.length)];
+                    const positionFunc = positionStyles[currentPhase.positionStyle] || positionStyles.random;
+
+                    // Add random offset to launch position
+                    const baseX = positionFunc(i, currentPhase.simultaneous, canvas.width, currentTime);
+                    const randomOffset = (Math.random() - 0.5) * 100;
+                    const launchX = baseX + randomOffset;
+
+                    // Randomize target more based on launch position
+                    const targetOffset = Math.sin(currentTime * 0.002 + i) * 80;
+                    const targetX = launchX + targetOffset;
+
+                    // Vary height based on position and time
+                    const baseHeight = currentPhase.type === 'large' ? 0.35 : 0.45;
+                    const timeVariation = Math.sin(currentTime * 0.001 + i * Math.PI) * 0.1;
+                    const heightVar = currentPhase.heightVariation + timeVariation;
+                    const targetY = canvas.height * (baseHeight + (Math.random() - 0.5) * heightVar);
+
+                    const firework = new Firework(
+                        launchX,
+                        canvas.height,
+                        targetX,
+                        targetY,
+                        pattern
+                    );
+
+                    // Randomize speed and trail based on position
+                    const speedVariation = 0.5 + Math.sin(launchX * 0.01) * 0.3;
+                    firework.speed = (currentPhase.type === 'large' ? 3 : 2.5) * speedVariation;
+                    firework.maxTrailLength = 5 + Math.floor(Math.random() * 4);
+
+                    fireworks.push(firework);
+                }, launchDelay + Math.random() * 200); // Add extra random delay
+            }
+
+            sequenceFireworkCount++;
+
+            // Natural transition between phases
+            if (sequenceFireworkCount >= currentPhase.count) {
+                currentSequenceIndex = (currentSequenceIndex + 1) % sequence.length;
+                sequenceFireworkCount = 0;
+                sequenceInterval = baseInterval * (0.9 + Math.random() * 0.2);
+            }
+        }
+
+        // Add new TextRocket and TextParticle classes
+        // Modify TextRocket class for better performance
+        class TextRocket {
+            constructor() {
+                // Calculate responsive position and size based on screen dimensions
+                this.x = canvas.width / 2 + (Math.random() - 0.5) * (canvas.width * 0.2);
+                this.y = canvas.height;
+                this.targetY = canvas.height * (window.innerWidth <= 768 ? 0.4 : 0.3);
+                this.speed = Math.min(8, canvas.height * 0.01);
+                this.color = 'rgba(255, 255, 255, 1)';
+                // Optimize trail length
+                this.maxTrailLength = 10; // Reduced from 20
+                this.trail = [];
+                // Responsive particle size
+                this.size = Math.max(2, Math.min(canvas.width, canvas.height) * 0.003);
+            }
+
+            draw() {
+                // Draw only every other trail particle
+                for (let i = 0; i < this.trail.length; i += 2) {
+                    const alpha = i / this.trail.length * 0.5;
+                    ctx.beginPath();
+                    ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+                    ctx.arc(this.trail[i].x, this.trail[i].y, this.size * 0.8, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                // Simplified glow effect
+                ctx.beginPath();
+                ctx.fillStyle = this.color;
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            update() {
+                this.trail.push({ x: this.x, y: this.y });
+                if (this.trail.length > this.maxTrailLength) this.trail.shift();
+                this.y -= this.speed;
+                return this.y <= this.targetY;
+            }
+        }
+
+        // Optimize TextParticle for better performance
+        class TextParticle {
+            constructor(x, y, targetX, targetY, color) {
+                const isMobile = window.innerWidth <= 768;
+                this.x = x;
+                this.y = y;
+                this.startX = x;
+                this.startY = y;
+                this.targetX = targetX;
+                this.targetY = targetY;
+                this.color = color;
+                this.alpha = 1;
+                this.progress = 0;
+                this.speed = 0.03 + Math.random() * 0.02; // Slightly faster movement
+                this.size = isMobile ? 1.5 : 1; // Reduced particle size
+            }
+
+            // Simplified drawing without shadows
+            draw() {
+                ctx.globalAlpha = this.alpha;
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            update() {
+                if (this.progress < 1) {
+                    this.progress += this.speed;
+                    this.x = this.startX + (this.targetX - this.startX) * this.progress;
+                    this.y = this.startY + (this.targetY - this.startY) * this.progress;
+                } else {
+                    this.alpha -= 0.01;
+                }
+                return this.alpha > 0;
+            }
+        }
+
+        // Optimize text particle creation
+        function createTextParticles(x, y, color) {
+            const particles = [];
+            const offscreen = document.createElement('canvas');
+            const offCtx = offscreen.getContext('2d');
+            offscreen.width = canvas.width;
+            offscreen.height = canvas.height;
+
+            // Enhanced text rendering settings
+            offCtx.textBaseline = 'middle';
+            offCtx.textAlign = 'center';
+
+            const isMobile = window.innerWidth <= 768;
+            // Reduced font size for lighter rendering
+            const fontSize = isMobile ?
+                Math.min(70, Math.max(35, canvas.width * 0.12)) :
+                Math.min(80, Math.max(30, canvas.width * 0.06));
+            const textSpacing = fontSize * (isMobile ? 1 : 1.1);
+
+            // Simplified text rendering
+            offCtx.font = `bold ${fontSize}px Arial`;
+            offCtx.fillStyle = '#FFFFFF';
+
+            if (isMobile) {
+                offCtx.fillText("HAPPY", x, y - textSpacing);
+                offCtx.fillText("NEW YEAR", x, y);
+                offCtx.fillText("2025", x, y + textSpacing);
+            } else {
+                offCtx.fillText("HAPPY NEW YEAR", x, y);
+                offCtx.fillText("2025", x, y + textSpacing);
+            }
+
+            const imageData = offCtx.getImageData(0, 0, offscreen.width, offscreen.height);
+            const pixels = imageData.data;
+
+            // Increased density factor for fewer particles
+            const densityFactor = isMobile ? 16 : 12;
+
+            for (let i = 0; i < pixels.length; i += densityFactor * 4) {
+                if (pixels[i + 3] > 128) {
+                    const px = (i / 4) % offscreen.width;
+                    const py = Math.floor((i / 4) / offscreen.width);
+
+                    const angle = Math.random() * Math.PI * 2;
+                    const radius = Math.random() * (isMobile ? 20 : 30);
+                    const startX = x + Math.cos(angle) * radius;
+                    const startY = y + Math.sin(angle) * radius;
+
+                    particles.push(new TextParticle(
+                        startX,
+                        startY,
+                        px,
+                        py,
+                        'rgba(255, 255, 255, 0.8)'
+                    ));
+                }
+            }
+            return particles;
+        }
+
+        // Modify the existing animation setup
+        let textRockets = [];
+        let textParticles = [];
+        let lastTextLaunch = 0;
+
+        // Add these new event listeners after canvas setup
+        // Handle both mouse clicks and touch events
+        canvas.addEventListener('click', handleInteraction);
+        canvas.addEventListener('touchstart', handleInteraction);
+
+        // Add this new function before the animate function
+        function handleInteraction(e) {
+            e.preventDefault();
+            let x, y;
+
+            if (e.type === 'touchstart') {
+                const touch = e.touches[0];
+                x = touch.clientX;
+                y = touch.clientY;
+            } else {
+                x = e.clientX;
+                y = e.clientY;
+            }
+
+            // Create 1-3 fireworks at click location
+            const count = 1 + Math.floor(Math.random() * 3);
+            for (let i = 0; i < count; i++) {
+                const targetX = x + (Math.random() - 0.5) * 50;
+                const targetY = y + (Math.random() - 0.5) * 50;
+                const pattern = allPatterns[Math.floor(Math.random() * allPatterns.length)];
+
+                const firework = new Firework(
+                    x + (Math.random() - 0.5) * 20,
+                    canvas.height,
+                    targetX,
+                    targetY,
+                    pattern
+                );
+
+                firework.speed = 3 + Math.random();
+                fireworks.push(firework);
+            }
+        }
+
+        // Add window resize handler after canvas setup
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            // Update existing text rockets and particles
+            textRockets.forEach(rocket => {
+                rocket.targetY = canvas.height * (window.innerWidth <= 768 ? 0.4 : 0.3);
+                rocket.size = Math.max(2, Math.min(canvas.width, canvas.height) * 0.003);
+            });
+
+            textParticles.forEach(particle => {
+                particle.size = Math.max(1.5, Math.min(canvas.width, canvas.height) * 0.002);
+            });
+        });
+
+        // Optimize animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            const currentTime = Date.now();
+
+            // Reduce trailing effect
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)'; // Increased alpha for less trail
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Regular fireworks
+            if (currentTime - sequenceTime >= sequenceInterval) {
+                launchSequenceFirework();
+                sequenceTime = currentTime;
+            }
+
+            // Text fireworks
+            if (textRockets.length === 0 && currentTime - lastTextLaunch > 8000) {
+                textRockets.push(new TextRocket());
+                lastTextLaunch = currentTime;
+            }
+
+            // Update and draw everything
+            for (let i = fireworks.length - 1; i >= 0; i--) {
+                const exploded = fireworks[i].update();
+                fireworks[i].draw(ctx);
+                if (exploded) {
+                    particles.push(...exploded);
+                    fireworks.splice(i, 1);
+                }
+            }
+
+            textRockets.forEach((rocket, index) => {
+                rocket.draw();
+                if (rocket.update()) {
+                    textRockets.splice(index, 1);
+                    textParticles = textParticles.concat(
+                        createTextParticles(rocket.x, rocket.targetY, rocket.color)
+                    );
+                }
+            });
+
+            // Update particles
+            for (let i = particles.length - 1; i >= 0; i--) {
+                if (!particles[i].update()) {
+                    particles.splice(i, 1);
+                } else {
+                    particles[i].draw(ctx);
+                }
+            }
+
+            // Batch process text particles for better performance
+            if (textParticles.length > 0) {
+                ctx.save();
+                textParticles = textParticles.filter(p => {
+                    const alive = p.update();
+                    p.draw();
+                    return alive;
+                });
+                ctx.restore();
+            }
+        }
+
+        // Start animation with sequence time initialization
+        // sequenceTime = Date.now();
+        // lastTextLaunch = Date.now();
+        // animate();
+    </script>
+</body>
+
+</html>
